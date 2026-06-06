@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1">{{ page_title }}</h1>
+            <p class="text-muted mb-0">Real-time multi-target ping + HTTP monitoring, smart alerting va analytics paneli.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="/export/csv/" class="btn btn-outline-dark">CSV export</a>
+            <a href="/health/" class="btn btn-outline-secondary">Health</a>
+            <a href="/api/telegram-test/" class="btn btn-outline-success">Telegram test</a>
+            <a href="/targets/create/" class="btn btn-primary">Yangi target</a>
+        </div>
+    </div>
+
+    <div class="alert alert-info d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
+        <div>
+            <strong>Auto-refresh yoqilgan.</strong>
+            Dashboard har {{ monitor_interval_seconds }} sekundda qisman yangilanadi, due targetlar fon rejimida tekshiriladi.
+        </div>
+        <span class="badge text-bg-info">{{ monitor_interval_seconds }}s interval</span>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form id="dashboardFilters" class="row g-3" method="get">
+                <div class="col-md-3">
+                    <label class="form-label">Qidiruv</label>
+                    <input type="text" name="q" value="{{ filters.q }}" class="form-control" placeholder="Target nomi yoki host">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">Barchasi</option>
+                        <option value="online" {% if filters.status == 'online' %}selected{% endif %}>Online</option>
+                        <option value="offline" {% if filters.status == 'offline' %}selected{% endif %}>Offline</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Sana dan</label>
+                    <input type="date" name="date_from" value="{{ filters.date_from }}" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Sana gacha</label>
+                    <input type="date" name="date_to" value="{{ filters.date_to }}" class="form-control">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="offline_only" value="1" id="offlineOnly" {% if filters.offline_only %}checked{% endif %}>
+                        <label class="form-check-label" for="offlineOnly">Faqat offline</label>
+                    </div>
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="submit" class="btn btn-dark w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="dashboard-widgets">
+        {% include "monitoring/partials/widgets.html" %}
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="h5 mb-0">Targets overview</h2>
+                        <a href="/targets/" class="btn btn-sm btn-outline-dark">Barchasini ko'rish</a>
+                    </div>
+                    <div id="dashboard-targets">
+                        {% include "monitoring/partials/targets_table.html" %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h2 class="h5 mb-3">Quick add target</h2>
+                    <form method="post" action="/targets/create/dashboard/">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label" for="id_name">Target nomi</label>
+                            {{ target_form.name }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="id_url">Website URL</label>
+                            {{ target_form.url }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="id_check_interval">Check interval</label>
+                            {{ target_form.check_interval }}
+                        </div>
+                        <div class="form-check mb-3">
+                            {{ target_form.is_active }}
+                            <label class="form-check-label" for="id_is_active">Faol target</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Target qo'shish</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm chart-card h-100">
+                <div class="card-body">
+                    <h2 class="h5 mb-3">Ping trend</h2>
+                    <div class="chart-wrapper chart-wrapper-lg">
+                        <canvas id="pingTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm chart-card h-100">
+                <div class="card-body">
+                    <h2 class="h5 mb-3">Uptime trend</h2>
+                    <div class="chart-wrapper chart-wrapper-sm">
+                        <canvas id="uptimeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm chart-card h-100">
+                <div class="card-body">
+                    <h2 class="h5 mb-3">Outage statistics</h2>
+                    <div class="chart-wrapper chart-wrapper-sm">
+                        <canvas id="outageChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="card border-0 shadow-sm chart-card h-100">
+                <div class="card-body">
+                    <h2 class="h5 mb-3">Response distribution</h2>
+                    <div class="chart-wrapper chart-wrapper-lg">
+                        <canvas id="distributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboard-analytics" class="mb-4">
+        {% include "monitoring/partials/analytics_panels.html" %}
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h2 class="h5 mb-3">So'nggi monitoring natijalari</h2>
+                    <div id="dashboard-results">
+                        {% include "monitoring/partials/results_table.html" %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h2 class="h5 mb-3">Recent outages</h2>
+                    <div id="dashboard-outages">
+                        {% include "monitoring/partials/outages_list.html" %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    (function () {
+        const refreshIntervalMs = {{ monitor_interval_seconds|default:30 }} * 1000;
+        const chartState = {
+            pingLabels: {{ chart_labels_json|safe }},
+            pingValues: {{ chart_ping_values_json|safe }},
+            uptimeLabels: {{ uptime_labels_json|safe }},
+            uptimeValues: {{ uptime_values_json|safe }},
+            outageLabels: {{ outage_labels_json|safe }},
+            outageValues: {{ outage_values_json|safe }},
+            distributionLabels: {{ distribution_labels_json|safe }},
+            distributionValues: {{ distribution_values_json|safe }}
+        };
+
+        let pingChart;
+        let uptimeChart;
+        let outageChart;
+        let distributionChart;
+
+        function buildCharts() {
+            const pingChartElement = document.getElementById('pingTrendChart');
+            if (pingChartElement) {
+                if (pingChart) pingChart.destroy();
+                pingChart = new Chart(pingChartElement, {
+                    type: 'line',
+                    data: {
+                        labels: chartState.pingLabels,
+                        datasets: [{
+                            label: 'Ping (ms)',
+                            data: chartState.pingValues,
+                            borderColor: '#0d6efd',
+                            backgroundColor: 'rgba(13, 110, 253, 0.15)',
+                            tension: 0.3,
+                            fill: true
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            const uptimeChartElement = document.getElementById('uptimeChart');
+            if (uptimeChartElement) {
+                if (uptimeChart) uptimeChart.destroy();
+                uptimeChart = new Chart(uptimeChartElement, {
+                    type: 'bar',
+                    data: {
+                        labels: chartState.uptimeLabels,
+                        datasets: [{
+                            label: 'Uptime %',
+                            data: chartState.uptimeValues,
+                            backgroundColor: '#198754'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true, max: 100 } }
+                    }
+                });
+            }
+
+            const outageChartElement = document.getElementById('outageChart');
+            if (outageChartElement) {
+                if (outageChart) outageChart.destroy();
+                outageChart = new Chart(outageChartElement, {
+                    type: 'doughnut',
+                    data: {
+                        labels: chartState.outageLabels,
+                        datasets: [{
+                            data: chartState.outageValues,
+                            backgroundColor: ['#dc3545', '#fd7e14', '#ffc107', '#6f42c1', '#20c997', '#0dcaf0']
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            const distributionChartElement = document.getElementById('distributionChart');
+            if (distributionChartElement) {
+                if (distributionChart) distributionChart.destroy();
+                distributionChart = new Chart(distributionChartElement, {
+                    type: 'bar',
+                    data: {
+                        labels: chartState.distributionLabels,
+                        datasets: [{
+                            label: 'Count',
+                            data: chartState.distributionValues,
+                            backgroundColor: ['#198754', '#0d6efd', '#ffc107', '#dc3545']
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+        }
+
+        buildCharts();
+
+        async function refreshMonitoringData() {
+            const query = window.location.search || '';
+            try {
+                const response = await fetch(`/dashboard/partial/${query}`, {
+                    method: 'GET',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const payload = await response.json();
+                document.getElementById('dashboard-widgets').innerHTML = payload.widgets_html;
+                document.getElementById('dashboard-targets').innerHTML = payload.targets_html;
+                document.getElementById('dashboard-results').innerHTML = payload.results_html;
+                document.getElementById('dashboard-outages').innerHTML = payload.outages_html;
+                document.getElementById('dashboard-analytics').innerHTML = payload.analytics_html;
+
+                chartState.pingLabels = payload.charts.ping_labels;
+                chartState.pingValues = payload.charts.ping_values;
+                chartState.uptimeLabels = payload.charts.uptime_labels;
+                chartState.uptimeValues = payload.charts.uptime_values;
+                chartState.outageLabels = payload.charts.outage_labels;
+                chartState.outageValues = payload.charts.outage_values;
+                chartState.distributionLabels = payload.charts.distribution_labels;
+                chartState.distributionValues = payload.charts.distribution_values;
+                buildCharts();
+            } catch (error) {
+                console.error('Monitoring refresh error:', error);
+            }
+        }
+
+        window.setInterval(refreshMonitoringData, refreshIntervalMs);
+    })();
+</script>
+{% endblock %}

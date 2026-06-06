@@ -1,0 +1,34 @@
+<div class="row g-3 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="metric-box status-card {% if current_status == 'Online' %}bg-success-subtle{% elif current_status == 'Offline' %}bg-danger-subtle{% else %}bg-warning-subtle{% endif %}">
+            <div class="small text-muted mb-1">Overall status</div>
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="h5 mb-0">{{ current_status }}</h2>
+                <span class="badge {% if current_status == 'Online' %}text-bg-success{% elif current_status == 'Offline' %}text-bg-danger{% else %}text-bg-warning{% endif %}">{{ current_status|upper }}</span>
+            </div>
+            <div class="small mt-2">Last checked: {{ last_checked|date:"Y-m-d H:i:s"|default:"-" }}</div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="metric-box bg-primary-subtle status-card">
+            <div class="small text-muted mb-1">Targetlar</div>
+            <h2 class="h4 mb-1">{{ total_targets }}</h2>
+            <div class="small">Online: {{ online_targets }} | Offline: {{ offline_targets }}</div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="metric-box bg-info-subtle status-card">
+            <div class="small text-muted mb-1">Checks & Uptime</div>
+            <h2 class="h4 mb-1">{{ total_checks }}</h2>
+            <div class="small">Uptime: {{ overall_uptime }}%</div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="metric-box bg-secondary-subtle status-card">
+            <div class="small text-muted mb-1">Performance</div>
+            <h2 class="h6 mb-1">Avg ping: {{ average_ping|floatformat:2|default:"-" }} ms</h2>
+            <div class="small">Avg response: {{ average_response|floatformat:2|default:"-" }} ms</div>
+            <div class="small mt-2">Failures: {{ offline_count }}</div>
+        </div>
+    </div>
+</div>

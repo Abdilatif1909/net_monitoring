@@ -1,0 +1,124 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Internet Monitoring{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_head %}{% endblock %}
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('monitoring-theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm app-navbar">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">Internet Monitoring</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNavbar">
+                <div class="navbar-nav ms-auto align-items-lg-center gap-2">
+                {% if request.user.is_authenticated %}
+                    <a href="/" class="btn btn-sm btn-outline-light">Dashboard</a>
+                    <a href="/targets/" class="btn btn-sm btn-outline-light">Targets</a>
+                    <a href="/#dashboard-analytics" class="btn btn-sm btn-outline-light">Analytics</a>
+                    <a href="/admin/" class="btn btn-sm btn-outline-light">Admin</a>
+                    <button type="button" id="themeToggle" class="btn btn-sm btn-outline-info">Dark mode</button>
+                    <span class="small text-white-50 ms-2">{{ request.user.username }}</span>
+                    <form method="post" action="/accounts/logout/" class="m-0">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-warning">Chiqish</button>
+                    </form>
+                {% else %}
+                    <a href="/accounts/login/" class="btn btn-sm btn-outline-light">Kirish</a>
+                {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="py-4">
+        <div class="container mb-3">
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="py-4">
+        <div class="container">
+            <div class="card border-0 shadow-sm glass-card author-card overflow-hidden">
+                <div class="card-body p-4">
+                    <div class="row g-4 align-items-center">
+                        <div class="col-md-3 col-lg-2 text-center text-md-start">
+                            <img src="{% static 'img/author-avatar.jpg' %}" alt="Dilmurod O'roqov" class="author-photo img-fluid rounded-4 shadow-sm">
+                        </div>
+                        <div class="col-md-9 col-lg-10">
+                            <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+                                <div>
+                                    <p class="text-uppercase small text-muted mb-1">Muallif</p>
+                                    <h2 class="h5 mb-1">Dilmurod O'roqov</h2>
+                                    <p class="mb-0 text-muted">Axborot texnologiyalari va mmenejment universiteti magistranti</p>
+                                </div>
+                                <div class="author-links d-flex flex-wrap gap-2">
+                                    <a href="tel:+998905188442" class="btn btn-sm btn-outline-dark"><i class="bi bi-telephone me-2"></i>+998 90 518 84 42</a>
+                                    <a href="https://t.me/Dilmurod_TUIT" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary"><i class="bi bi-telegram me-2"></i>@Dilmurod_TUIT</a>
+                                    <a href="mailto:Dilmurod123@gmail.com" class="btn btn-sm btn-outline-success"><i class="bi bi-envelope me-2"></i>Dilmurod123@gmail.com</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <div class="toast-container position-fixed top-0 end-0 p-3 monitor-toast-container" id="monitorToastContainer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/monitor_feedback.js' %}"></script>
+    <script>
+        (function () {
+            const toggle = document.getElementById('themeToggle');
+            if (!toggle) {
+                return;
+            }
+
+            function syncLabel() {
+                const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+                toggle.textContent = dark ? 'Light mode' : 'Dark mode';
+            }
+
+            toggle.addEventListener('click', function () {
+                const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+                if (dark) {
+                    document.documentElement.removeAttribute('data-theme');
+                    localStorage.setItem('monitoring-theme', 'light');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('monitoring-theme', 'dark');
+                }
+                syncLabel();
+            });
+
+            syncLabel();
+        })();
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

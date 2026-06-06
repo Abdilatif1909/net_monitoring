@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1">{{ page_title }}</h1>
+            <p class="text-muted mb-0">Barcha monitor targetlar va ularning joriy holati.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/" class="btn btn-outline-dark">Dashboard</a>
+            <a href="/targets/create/" class="btn btn-primary">Yangi target</a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>URL</th>
+                            <th>Status</th>
+                            <th>Interval</th>
+                            <th>Uptime</th>
+                            <th>Downtime</th>
+                            <th>Avg response</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in target_summaries %}
+                        <tr>
+                            <td class="fw-semibold">{{ item.target.name }}</td>
+                            <td>{{ item.target.url }}</td>
+                            <td>
+                                <span class="badge {% if item.target.last_status == 'online' %}text-bg-success{% elif item.target.last_status == 'offline' %}text-bg-danger{% else %}text-bg-secondary{% endif %}">
+                                    {{ item.target.get_last_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ item.target.check_interval }}s</td>
+                            <td>{{ item.uptime_percentage }}%</td>
+                            <td>{{ item.downtime_count }}</td>
+                            <td>{{ item.average_response|default:"-" }} ms</td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="/api/check/{{ item.target.id }}/" class="btn btn-outline-primary">Check</a>
+                                    <a href="/targets/{{ item.target.id }}/edit/" class="btn btn-outline-secondary">Edit</a>
+                                    <a href="/targets/{{ item.target.id }}/delete/" class="btn btn-outline-danger">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">Targetlar topilmadi.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

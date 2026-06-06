@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h1 class="h4 mb-3">{{ page_title }}</h1>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label" for="id_name">{{ form.name.label }}</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors|join:", " }}</div>{% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="id_url">{{ form.url.label }}</label>
+                            {{ form.url }}
+                            {% if form.url.errors %}<div class="text-danger small mt-1">{{ form.url.errors|join:", " }}</div>{% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="id_check_interval">{{ form.check_interval.label }}</label>
+                            {{ form.check_interval }}
+                            {% if form.check_interval.errors %}<div class="text-danger small mt-1">{{ form.check_interval.errors|join:", " }}</div>{% endif %}
+                        </div>
+                        <div class="form-check mb-3">
+                            {{ form.is_active }}
+                            <label class="form-check-label" for="id_is_active">{{ form.is_active.label }}</label>
+                        </div>
+                        <div class="d-flex justify-content-between gap-2">
+                            <a href="/targets/" class="btn btn-outline-secondary">Bekor qilish</a>
+                            <button type="submit" class="btn btn-primary">{{ submit_label }}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

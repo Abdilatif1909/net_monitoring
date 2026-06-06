@@ -1,0 +1,190 @@
+<section class="hero-gradient glass-panel overflow-hidden mb-4">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <span class="status-pulse {% if latest_result and latest_result.status == 'online' %}is-online{% else %}is-offline{% endif %}"></span>
+                <div>
+                    <p class="text-uppercase small opacity-75 mb-1">Target live monitor</p>
+                    <h1 class="display-6 fw-bold mb-1">{{ target.name }}</h1>
+                    <p class="mb-0 opacity-75">{{ page_subtitle }}</p>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <span class="badge rounded-pill fs-6 {% if latest_result and latest_result.status == 'online' %}text-bg-success{% else %}text-bg-danger{% endif %}">
+                    <i class="bi {% if latest_result and latest_result.status == 'online' %}bi-wifi{% else %}bi-wifi-off{% endif %} me-1"></i>
+                    {{ latest_result.get_status_display|default:"Unknown" }}
+                </span>
+                <span class="badge rounded-pill text-bg-dark-subtle text-dark-emphasis fs-6">
+                    <i class="bi bi-globe2 me-1"></i>{{ target.url }}
+                </span>
+                {% if latest_result and latest_result.ip_address %}
+                <span class="badge rounded-pill text-bg-light fs-6">
+                    <i class="bi bi-router me-1"></i>{{ latest_result.ip_address }}
+                </span>
+                {% endif %}
+                {% if latest_result and latest_result.checked_at %}
+                <span class="badge rounded-pill text-bg-light fs-6">
+                    <i class="bi bi-clock me-1"></i>{{ latest_result.checked_at|date:"H:i:s" }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="d-flex flex-column gap-2 align-items-lg-end">
+                <button type="button" class="btn btn-light btn-lg shadow-sm js-live-refresh-btn">
+                    <i class="bi bi-arrow-clockwise me-2"></i>Refresh now
+                </button>
+                <a href="/targets/{{ target.id }}/history/" class="btn btn-outline-light btn-lg">
+                    <i class="bi bi-clock-history me-2"></i>History view
+                </a>
+                <div class="form-check form-switch mt-2 text-white">
+                    <input class="form-check-input js-auto-refresh-toggle" type="checkbox" role="switch" id="autoRefreshToggle">
+                    <label class="form-check-label" for="autoRefreshToggle">Auto refresh ({{ auto_refresh_seconds }}s)</label>
+                </div>
+                <small class="opacity-75 js-live-update-label">Live AJAX update ready</small>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if live_mode and status_changed %}
+<div class="alert alert-warning border-0 shadow-sm live-alert-box">
+    <i class="bi bi-bell-fill me-2"></i>Status changed. Telegram: {{ notification_sent|yesno:"yes,no" }}, Email: {{ email_sent|yesno:"yes,no" }}.
+</div>
+{% else %}
+<div class="alert alert-secondary border-0 shadow-sm live-alert-box">
+    <i class="bi bi-info-circle-fill me-2"></i>Live panel page reloadsiz yangilanadi.
+</div>
+{% endif %}
+
+<div class="row g-4 mb-4">
+    {% include "monitoring/partials/status_card.html" with title="Current status" value=latest_result.get_status_display|default:"Unknown" subtitle=status_card_checked_at icon="bi-activity" icon_bg_class="bg-success-subtle" icon_text_class="text-success" %}
+    {% include "monitoring/partials/status_card.html" with title="Network info" value=status_card_ping subtitle=status_card_response icon="bi-broadcast-pin" icon_bg_class="bg-primary-subtle" icon_text_class="text-primary" %}
+    {% include "monitoring/partials/status_card.html" with title="Performance" value=status_card_http subtitle=status_card_ip icon="bi-hdd-network" icon_bg_class="bg-info-subtle" icon_text_class="text-info" %}
+    {% include "monitoring/partials/status_card.html" with title="Alerts" value=status_card_alerts subtitle=status_card_alerts_subtitle icon="bi-speedometer2" icon_bg_class="bg-warning-subtle" icon_text_class="text-warning" progress_value=response_score progress_class=response_progress_class %}
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm glass-card h-100">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h5 mb-0"><i class="bi bi-info-circle me-2"></i>Monitoring snapshot</h2>
+                    <span class="badge rounded-pill {% if latest_result and latest_result.status == 'online' %}text-bg-success{% else %}text-bg-danger{% endif %}">
+                        {{ latest_result.get_status_display|default:"Unknown" }}
+                    </span>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6"><div class="detail-item"><span class="detail-label">Website name</span><strong>{{ target.name }}</strong></div></div>
+                    <div class="col-md-6"><div class="detail-item"><span class="detail-label">Website URL</span><strong>{{ target.url }}</strong></div></div>
+                    <div class="col-md-6"><div class="detail-item"><span class="detail-label">Last checked</span><strong>{{ latest_result.checked_at|date:"Y-m-d H:i:s"|default:"-" }}</strong></div></div>
+                    <div class="col-md-6"><div class="detail-item"><span class="detail-label">IP address</span><strong>{{ latest_result.ip_address|default:"-" }}</strong></div></div>
+                    <div class="col-md-6"><div class="detail-item"><span class="detail-label">Weekly uptime</span><strong>{{ analytics.weekly_uptime }}%</strong></div></div>
+                    <div class="col-md-6"><div class="detail-item"><span class="detail-label">Outage count</span><strong>{{ analytics.outage_count }}</strong></div></div>
+                </div>
+                <div class="alert {% if latest_result and latest_result.status == 'online' %}alert-success{% else %}alert-danger{% endif %} border-0 mt-4 mb-0">
+                    <div class="d-flex gap-2">
+                        <i class="bi {% if latest_result and latest_result.status == 'online' %}bi-check-circle-fill{% else %}bi-exclamation-triangle-fill{% endif %}"></i>
+                        <div>
+                            <div class="fw-semibold">Error message / note</div>
+                            <div>{{ latest_result.error_message|default:"Target responded successfully." }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm glass-card h-100">
+            <div class="card-body p-4">
+                <h2 class="h5 mb-3"><i class="bi bi-bar-chart-line me-2"></i>Quick stats</h2>
+                <div class="vstack gap-3">
+                    <div class="quick-stat"><span>Daily uptime</span><strong>{{ analytics.daily_uptime }}%</strong></div>
+                    <div class="quick-stat"><span>Monthly uptime</span><strong>{{ analytics.monthly_uptime }}%</strong></div>
+                    <div class="quick-stat"><span>Average response</span><strong>{{ analytics.average_response_time|floatformat:2|default:"-" }} ms</strong></div>
+                    <div class="quick-stat"><span>Max response</span><strong>{{ analytics.max_response_time|floatformat:2|default:"-" }} ms</strong></div>
+                    <div class="quick-stat"><span>Notification status</span><strong>{{ telegram_status_display }}</strong></div>
+                    <div class="quick-stat"><span>Email status</span><strong>{{ email_status_display }}</strong></div>
+                </div>
+                <div class="mt-4 d-grid gap-2">
+                    <a href="/api/check/{{ target.id }}/" class="btn btn-outline-dark"><i class="bi bi-code-slash me-2"></i>Open JSON API</a>
+                    <a href="/targets/{{ target.id }}/export/?type=history&format=csv" class="btn btn-outline-primary"><i class="bi bi-download me-2"></i>Export history</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm glass-card h-100">
+            <div class="card-body p-4">
+                <h2 class="h5 mb-3"><i class="bi bi-graph-up-arrow me-2"></i>Recent ping trend</h2>
+                <div class="chart-wrapper chart-wrapper-lg"><canvas id="pingTrendChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm glass-card h-100">
+            <div class="card-body p-4">
+                <h2 class="h5 mb-3"><i class="bi bi-cpu me-2"></i>Response history</h2>
+                <div class="chart-wrapper chart-wrapper-lg"><canvas id="responseTrendChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm glass-card">
+    <div class="card-body p-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+            <h2 class="h5 mb-0"><i class="bi bi-table me-2"></i>Recent checks</h2>
+            <div class="d-flex gap-2">
+                <a href="/targets/{{ target.id }}/history/" class="btn btn-outline-secondary btn-sm">Full history</a>
+                <button type="button" class="btn btn-primary btn-sm js-live-refresh-btn">Run check</button>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-modern align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Checked at</th>
+                        <th>Ping</th>
+                        <th>Response time</th>
+                        <th>HTTP</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in history_page %}
+                    <tr>
+                        <td>{{ item.checked_at|date:"Y-m-d H:i:s" }}</td>
+                        <td>{{ item.ping_ms|floatformat:2|default:"-" }} ms</td>
+                        <td>{{ item.response_time_ms|floatformat:2|default:"-" }} ms</td>
+                        <td>{{ item.response_status_code|default:"-" }}</td>
+                        <td>
+                            <span class="badge rounded-pill {% if item.status == 'online' %}text-bg-success{% else %}text-bg-danger{% endif %}">{{ item.get_status_display }}</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">Checks hali mavjud emas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if history_page.paginator.num_pages > 1 %}
+        <nav class="mt-3">
+            <ul class="pagination pagination-sm mb-0">
+                {% if history_page.has_previous %}
+                <li class="page-item"><a class="page-link js-target-live-nav" data-run-check="0" href="?page={{ history_page.previous_page_number }}">Oldingi</a></li>
+                {% endif %}
+                <li class="page-item disabled"><span class="page-link">{{ history_page.number }} / {{ history_page.paginator.num_pages }}</span></li>
+                {% if history_page.has_next %}
+                <li class="page-item"><a class="page-link js-target-live-nav" data-run-check="0" href="?page={{ history_page.next_page_number }}">Keyingi</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>

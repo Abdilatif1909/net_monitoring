@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1">{{ target.name }}</h1>
+            <p class="text-muted mb-0">{{ target.url }}</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="/targets/{{ target.id }}/export/?type=history&format=csv" class="btn btn-outline-dark">History CSV</a>
+            <a href="/targets/{{ target.id }}/export/?type=statistics&format=json" class="btn btn-outline-secondary">Stats JSON</a>
+            <a href="/targets/{{ target.id }}/edit/" class="btn btn-primary">Edit</a>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="metric-box bg-primary-subtle status-card">
+                <div class="small text-muted mb-1">Daily uptime</div>
+                <h2 class="h4 mb-0">{{ analytics.daily_uptime }}%</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="metric-box bg-info-subtle status-card">
+                <div class="small text-muted mb-1">Weekly uptime</div>
+                <h2 class="h4 mb-0">{{ analytics.weekly_uptime }}%</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="metric-box bg-warning-subtle status-card">
+                <div class="small text-muted mb-1">Monthly uptime</div>
+                <h2 class="h4 mb-0">{{ analytics.monthly_uptime }}%</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h2 class="h5 mb-3">Response analytics</h2>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item px-0 d-flex justify-content-between"><span>Average response</span><strong>{{ analytics.average_response_time }} ms</strong></li>
+                        <li class="list-group-item px-0 d-flex justify-content-between"><span>Max response</span><strong>{{ analytics.max_response_time }} ms</strong></li>
+                        <li class="list-group-item px-0 d-flex justify-content-between"><span>Outage count</span><strong>{{ analytics.outage_count }}</strong></li>
+                        <li class="list-group-item px-0 d-flex justify-content-between"><span>Success count</span><strong>{{ analytics.success_count }}</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm chart-card">
+                <div class="card-body">
+                    <h2 class="h5 mb-3">Ping & response trend</h2>
+                    <div class="chart-wrapper chart-wrapper-lg">
+                        <canvas id="targetTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h2 class="h5 mb-3">Monitoring history</h2>
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Ping</th>
+                                    <th>HTTP</th>
+                                    <th>Response</th>
+                                    <th>Checked at</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in history_page %}
+                                <tr>
+                                    <td><span class="badge {% if item.status == 'online' %}text-bg-success{% else %}text-bg-danger{% endif %}">{{ item.get_status_display }}</span></td>
+                                    <td>{{ item.ping_ms|default:"-" }} ms</td>
+                                    <td>{{ item.response_status_code|default:"-" }}</td>
+                                    <td>{{ item.response_time_ms|default:"-" }} ms</td>
+                                    <td>{{ item.checked_at|date:"Y-m-d H:i:s" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="5" class="text-center text-muted py-4">Tarix topilmadi.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h2 class="h5 mb-3">Outages</h2>
+                    <div class="list-group list-group-flush">
+                        {% for item in outages_page %}
+                        <div class="list-group-item px-0">
+                            <div class="fw-semibold text-danger">{{ item.checked_at|date:"Y-m-d H:i:s" }}</div>
+                            <div class="small">HTTP: {{ item.response_status_code|default:"-" }} | Ping: {{ item.ping_ms|default:"-" }}</div>
+                            <div class="small text-muted">{{ item.error_message|default:"Target javob bermadi." }}</div>
+                        </div>
+                        {% empty %}
+                        <div class="text-muted">Outage yo'q.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('targetTrendChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ ping_labels_json|safe }},
+                datasets: [
+                    {
+                        label: 'Ping (ms)',
+                        data: {{ ping_values_json|safe }},
+                        borderColor: '#0d6efd',
+                        backgroundColor: 'rgba(13, 110, 253, 0.15)',
+                        tension: 0.3,
+                        fill: true,
+                    },
+                    {
+                        label: 'Response (ms)',
+                        data: {{ response_values_json|safe }},
+                        borderColor: '#198754',
+                        backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                        tension: 0.3,
+                        fill: true,
+                    }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+</script>
+{% endblock %}

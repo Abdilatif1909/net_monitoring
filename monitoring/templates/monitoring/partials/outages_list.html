@@ -1,0 +1,30 @@
+<div class="list-group list-group-flush">
+    {% for item in recent_outages_page %}
+    <div class="list-group-item px-0">
+        <div class="d-flex justify-content-between gap-3">
+            <div>
+                <div class="fw-semibold text-danger">{{ item.target.name|default:item.host }}</div>
+                <div class="small text-muted">{{ item.checked_at|date:"Y-m-d H:i:s" }}</div>
+                <div class="small">HTTP: {{ item.response_status_code|default:"-" }} | Ping: {{ item.ping_ms|default:"-" }} ms</div>
+                <div class="small text-muted">{{ item.error_message|default:"Target javob bermadi." }}</div>
+            </div>
+            <span class="badge text-bg-danger align-self-start">Offline</span>
+        </div>
+    </div>
+    {% empty %}
+    <div class="text-muted">Hozircha outage qayd etilmagan.</div>
+    {% endfor %}
+</div>
+{% if recent_outages_page.paginator.num_pages > 1 %}
+<nav class="mt-3">
+    <ul class="pagination pagination-sm mb-0">
+        {% if recent_outages_page.has_previous %}
+        <li class="page-item"><a class="page-link" href="?outage_page={{ recent_outages_page.previous_page_number }}">Oldingi</a></li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link">{{ recent_outages_page.number }} / {{ recent_outages_page.paginator.num_pages }}</span></li>
+        {% if recent_outages_page.has_next %}
+        <li class="page-item"><a class="page-link" href="?outage_page={{ recent_outages_page.next_page_number }}">Keyingi</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}

@@ -1,0 +1,64 @@
+<section class="hero-gradient glass-panel overflow-hidden mb-4">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-8">
+            <p class="text-uppercase small opacity-75 mb-1">Telegram monitoring test</p>
+            <h1 class="display-6 fw-bold mb-2">Bot connection diagnostics</h1>
+            <p class="mb-0 opacity-75">Telegram bot ishlashi, chat ulanishi va yuborilgan xabar natijasi.</p>
+        </div>
+        <div class="col-lg-4">
+            <div class="d-flex flex-column gap-2 align-items-lg-end">
+                <button type="button" class="btn btn-light btn-lg shadow-sm js-telegram-refresh-btn">
+                    <i class="bi bi-send-check me-2"></i>Run test again
+                </button>
+                <div class="form-check form-switch mt-2 text-white">
+                    <input class="form-check-input js-telegram-auto-toggle" type="checkbox" role="switch" id="telegramAutoRefreshToggle">
+                    <label class="form-check-label" for="telegramAutoRefreshToggle">Auto refresh</label>
+                </div>
+                <small class="opacity-75 js-telegram-update-label">Live Telegram diagnostics ready</small>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="row g-4 mb-4 align-items-stretch">
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm glass-card h-100">
+            <div class="card-body p-4 text-center">
+                <div class="{% if telegram_success %}telegram-success-icon{% else %}telegram-error-icon{% endif %}">
+                    <i class="bi {% if telegram_success %}bi-check2-circle{% else %}bi-x-circle{% endif %}"></i>
+                </div>
+                <h2 class="h4 {% if telegram_success %}text-glow-success{% else %}text-glow-danger{% endif %}">
+                    {% if telegram_success %}Telegram connected{% else %}Telegram connection failed{% endif %}
+                </h2>
+                <p class="text-muted mb-0">{{ telegram_message }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="row g-4">
+            {% include "monitoring/partials/status_card.html" with title="Connection status" value=connection_status subtitle="Bot token configured" icon="bi-telegram" icon_bg_class="bg-info-subtle" icon_text_class="text-info" %}
+            {% include "monitoring/partials/status_card.html" with title="Chat ID" value=chat_id subtitle="Active recipient" icon="bi-chat-dots" icon_bg_class="bg-primary-subtle" icon_text_class="text-primary" %}
+            {% include "monitoring/partials/status_card.html" with title="Bot working" value=bot_token_configured|yesno:"Yes,No" subtitle=telegram_message icon="bi-cpu" icon_bg_class="bg-success-subtle" icon_text_class="text-success" %}
+            {% include "monitoring/partials/status_card.html" with title="Last sent time" value=last_sent_time|date:"Y-m-d H:i:s"|default:"-" subtitle=last_target_name|default:"No recent target" icon="bi-clock-history" icon_bg_class="bg-warning-subtle" icon_text_class="text-warning" %}
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm glass-card">
+    <div class="card-body p-4">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="detail-item h-100">
+                    <span class="detail-label">Success / error message</span>
+                    <strong>{{ telegram_message }}</strong>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="detail-item h-100">
+                    <span class="detail-label">Connection status</span>
+                    <span class="badge rounded-pill text-bg-{{ connection_badge }} fs-6">{{ connection_status }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

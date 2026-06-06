@@ -1,0 +1,43 @@
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Response</th>
+                <th>HTTP</th>
+                <th>Uptime</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in target_summaries %}
+            <tr>
+                <td>
+                    <div class="fw-semibold">{{ item.target.name }}</div>
+                    <div class="small text-muted">{{ item.target.url }}</div>
+                </td>
+                <td>
+                    <span class="badge {% if item.target.last_status == 'online' %}text-bg-success{% elif item.target.last_status == 'offline' %}text-bg-danger{% else %}text-bg-secondary{% endif %}">
+                        {{ item.target.get_last_status_display }}
+                    </span>
+                </td>
+                <td>{{ item.latest_result.response_time_ms|default:"-" }} ms</td>
+                <td>{{ item.latest_result.response_status_code|default:"-" }}</td>
+                <td>{{ item.uptime_percentage }}%</td>
+                <td class="text-end">
+                    <div class="btn-group btn-group-sm">
+                        <a href="/targets/{{ item.target.id }}/" class="btn btn-outline-dark">Detail</a>
+                        <a href="/monitor/check/{{ item.target.id }}/" class="btn btn-outline-primary">Check</a>
+                        <a href="/targets/{{ item.target.id }}/edit/" class="btn btn-outline-secondary">Edit</a>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">Targetlar hali mavjud emas.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

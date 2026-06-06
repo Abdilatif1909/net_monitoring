@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/animations.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container pb-4">
+    <div id="telegram-test-live-root" data-live-url="{{ telegram_live_data_url }}" data-auto-seconds="30">
+        {% include "monitoring/partials/telegram_test_root.html" %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/telegram_test.js' %}"></script>
+{% endblock %}

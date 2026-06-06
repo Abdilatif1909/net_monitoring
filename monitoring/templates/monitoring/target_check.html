@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/animations.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container pb-4">
+    <div id="target-check-live-root" class="position-relative" data-live-url="{{ target_live_data_url }}" data-auto-seconds="{{ auto_refresh_seconds }}" data-live-mode="{{ live_mode|yesno:'1,0' }}">
+        {% include "monitoring/partials/target_check_live_root.html" %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    window.monitorTargetInitialCharts = {
+        labels: {{ recent_labels_json|safe }},
+        ping_values: {{ recent_ping_values_json|safe }},
+        response_values: {{ recent_response_values_json|safe }}
+    };
+</script>
+<script src="{% static 'js/monitor_live.js' %}"></script>
+{% endblock %}

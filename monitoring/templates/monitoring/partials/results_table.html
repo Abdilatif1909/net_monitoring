@@ -1,0 +1,46 @@
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Target</th>
+                <th>Status</th>
+                <th>Ping</th>
+                <th>HTTP</th>
+                <th>Response</th>
+                <th>Checked at</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in latest_results_page %}
+            <tr>
+                <td>
+                    <div class="fw-semibold">{{ item.target.name|default:item.host }}</div>
+                    <div class="small text-muted">{{ item.host }}</div>
+                </td>
+                <td><span class="badge {% if item.status == 'online' %}text-bg-success{% else %}text-bg-danger{% endif %}">{{ item.get_status_display }}</span></td>
+                <td>{{ item.ping_ms|default:"-" }} ms</td>
+                <td>{{ item.response_status_code|default:"-" }}</td>
+                <td>{{ item.response_time_ms|default:"-" }} ms</td>
+                <td>{{ item.checked_at|date:"Y-m-d H:i:s" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">Monitoring natijalari topilmadi.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% if latest_results_page.paginator.num_pages > 1 %}
+<nav>
+    <ul class="pagination pagination-sm mb-0">
+        {% if latest_results_page.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ latest_results_page.previous_page_number }}">Oldingi</a></li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link">{{ latest_results_page.number }} / {{ latest_results_page.paginator.num_pages }}</span></li>
+        {% if latest_results_page.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ latest_results_page.next_page_number }}">Keyingi</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}

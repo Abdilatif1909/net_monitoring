@@ -1,0 +1,53 @@
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Top slow websites</h2>
+                <div class="list-group list-group-flush">
+                    {% for item in top_slow_websites %}
+                    <div class="list-group-item px-0 d-flex justify-content-between">
+                        <span>{{ item.name }}</span>
+                        <span class="badge text-bg-warning">{{ item.avg_response_time }} ms</span>
+                    </div>
+                    {% empty %}
+                    <div class="text-muted">Ma'lumot yo'q.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Most unstable targets</h2>
+                <div class="list-group list-group-flush">
+                    {% for item in most_unstable_targets %}
+                    <div class="list-group-item px-0 d-flex justify-content-between">
+                        <span>{{ item.name }}</span>
+                        <span class="badge text-bg-danger">{{ item.outage_count }} outage</span>
+                    </div>
+                    {% empty %}
+                    <div class="text-muted">Ma'lumot yo'q.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Recent notifications</h2>
+                <div class="list-group list-group-flush">
+                    {% for item in recent_notifications %}
+                    <div class="list-group-item px-0">
+                        <div class="fw-semibold">{{ item.target.name }}</div>
+                        <div class="small text-muted">{{ item.channel|title }} · {{ item.severity|title }} · {{ item.sent_at|date:"Y-m-d H:i:s" }}</div>
+                    </div>
+                    {% empty %}
+                    <div class="text-muted">Hali notification yuborilmagan.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
