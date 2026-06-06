@@ -1,0 +1,15 @@
+<svg width="220" height="220" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="22" y1="16" x2="196" y2="208" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1D4ED8"/>
+      <stop offset="0.52" stop-color="#7C3AED"/>
+      <stop offset="1" stop-color="#0F766E"/>
+    </linearGradient>
+  </defs>
+  <rect width="220" height="220" rx="36" fill="url(#bg)"/>
+  <circle cx="110" cy="84" r="38" fill="white" fill-opacity="0.18"/>
+  <path d="M110 126C71.8924 126 41 156.892 41 195V220H179V195C179 156.892 148.108 126 110 126Z" fill="white" fill-opacity="0.18"/>
+  <circle cx="110" cy="78" r="30" fill="#F8FAFC"/>
+  <path d="M110 118C82.3858 118 60 140.386 60 168V220H160V168C160 140.386 137.614 118 110 118Z" fill="#F8FAFC"/>
+  <text x="110" y="202" text-anchor="middle" fill="#1E293B" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700">Dilmurod O'roqov</text>
+</svg>
